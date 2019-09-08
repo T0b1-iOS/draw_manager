@@ -6,7 +6,8 @@ Setting up
 ------
 To get drawing to work you need to implement a class which extends draw_manager and implements the virtual functions.
 How to actually draw is pretty specific to your environment but to get an idea you can look at the d3d9 implementation provided or how ImGui does drawing, it's pretty similar.
-Please keep in mind that the d3d9 implementation does not implement everything(circle scissors) as I am pretty lazy and only implemented features in the implementations in which I needed them
+Please keep in mind that the d3d9 implementation does not implement everything(circle scissors) as I am pretty lazy and only implemented features in the implementations in which I needed them.
+
 You also need to provide freetype headers & binaries(https://www.freetype.org/download.html) as well as stb_rectpack.h(https://github.com/nothings/stb/blob/master/stb_rect_pack.h)
 
 Usage for Draing
