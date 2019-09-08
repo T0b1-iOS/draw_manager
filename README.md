@@ -21,3 +21,12 @@ const auto buffer = draw_manager->get_buffer(buffer_idx);
 // then swap
 draw_manager->swap_buffers(buffer_idx);
 ```
+
+Feature List
+------
+
+* drawing of primitives & text(freetype) into a vertex/index buffer consisting of triangles
+* multithreading as it operates like a swapchain
+* multiple independent buffers which can be sorted by priority & parent-child hierarchy
+* independent of actual drawing implementation(confirmed to work for d3d9 & csgo's surface)
+* supports bluring/color-keying (& circle scissors if they are implemented)
