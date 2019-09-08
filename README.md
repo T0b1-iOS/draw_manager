@@ -32,3 +32,7 @@ Feature List
 * multiple independent buffers which can be sorted by priority & parent-child hierarchy
 * independent of actual drawing implementation(confirmed to work for d3d9 & csgo's surface)
 * supports bluring/color-keying (& circle scissors if they are implemented)
+
+Kinda looks like this(after a resize and d3d9)
+------
+![preview](https://i.imgur.com/GNCDkpe.png)
