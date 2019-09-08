@@ -278,6 +278,8 @@ void d3d9_manager::draw()
 				auto tex_id     = cmd.tex_id;
 				if (cmd.font_texture)
 					tex_id = font_tex;
+				else
+					tex_id = _tex_dict.texture(reinterpret_cast<size_t>(tex_id) - 1u);
 				_device_ptr->SetScissorRect(&clip);
 				_device_ptr->SetTexture(texture_stage, reinterpret_cast<IDirect3DTexture9*>(tex_id));
 				_device_ptr->SetTransform(
@@ -647,6 +649,8 @@ bool d3d9_manager::create_device_objects()
 	if (!create_font_texture())
 		return false;
 
+	_tex_dict.post_reset(_device_ptr);
+
 	return true;
 }
 
@@ -726,25 +730,14 @@ bool d3d9_manager::invalidate_device_objects()
 
 	_r.font_texture = nullptr;
 	fonts->tex_id   = nullptr;
+	_tex_dict.pre_reset();
 
 	return true;
 }
 
 tex_id d3d9_manager::create_texture(const uint32_t width, const uint32_t height)
 {
-	IDirect3DTexture9 *texture = nullptr;
-	const auto res             = _device_ptr->CreateTexture(width,
-	                                                        height,
-	                                                        1,
-	                                                        D3DUSAGE_RENDERTARGET,
-	                                                        D3DFMT_A8R8G8B8,
-	                                                        D3DPOOL_DEFAULT,
-	                                                        &texture,
-	                                                        nullptr);
-	if (res != D3D_OK)
-		return nullptr;
-
-	return reinterpret_cast<tex_id>(texture);
+	return reinterpret_cast<tex_id>(_tex_dict.create_texture(width, height) + 1u);
 }
 
 // directx seems to be using RABG internally, maybe not, this is weird
@@ -754,7 +747,8 @@ void copy_convert(const uint8_t *rgba, uint8_t *out, const size_t size)
 	auto buf = reinterpret_cast<uint32_t*>(out);
 	for (auto i = 0u; i < (size / 4); ++i)
 	{
-		*buf++ = (*in & 0xFF00FF00) | ((*in & 0xFF0000) >> 16) | ((*in++ & 0xFF) << 16);
+		const auto pixel = *in++;
+		*buf++           = (pixel & 0xFF00FF00) | ((pixel & 0xFF0000) >> 16) | ((pixel & 0xFF) << 16);
 	}
 }
 
@@ -762,86 +756,27 @@ bool d3d9_manager::set_texture_rgba(const tex_id id, const uint8_t *rgba, const 
 {
 	assert(id != reinterpret_cast<tex_id>(0));
 
-	IDirect3DTexture9 *tmp_tex = nullptr;
-	auto res                   = _device_ptr->CreateTexture(width,
-	                                                        height,
-	                                                        1,
-	                                                        D3DUSAGE_DYNAMIC,
-	                                                        D3DFMT_A8R8G8B8,
-	                                                        D3DPOOL_SYSTEMMEM,
-	                                                        &tmp_tex,
-	                                                        nullptr);
-	if (res != D3D_OK)
-		return false;
-
-	D3DLOCKED_RECT rect;
-	res = tmp_tex->LockRect(0, &rect, nullptr, D3DLOCK_DISCARD);
-	if (res != D3D_OK)
-	{
-		tmp_tex->Release();
-		return false;
-	}
+	std::vector<uint8_t> tmp_data;
+	tmp_data.resize(width * height * 4u);
 
 	copy_convert(rgba,
-	             reinterpret_cast<uint8_t*>(rect.pBits),
+	             tmp_data.data(),
 	             width * height * sizeof(std::remove_pointer_t<decltype(rgba)>) * 4u);
 
-	res = tmp_tex->UnlockRect(0);
-	if (res != D3D_OK)
-	{
-		tmp_tex->Release();
-		return false;
-	}
-
-	res = _device_ptr->UpdateTexture(tmp_tex, reinterpret_cast<IDirect3DTexture9*>(id));
-
-	tmp_tex->Release();
-	return (res == D3D_OK);
+	return _tex_dict.set_tex_data(_device_ptr, reinterpret_cast<size_t>(id) - 1u, tmp_data.data(), width, height);
 }
 
 bool d3d9_manager::set_texture_rabg(const tex_id id, const uint8_t *rabg, const uint32_t width, const uint32_t height)
 {
-	IDirect3DTexture9 *tmp_tex = nullptr;
-	auto res                   = _device_ptr->CreateTexture(width,
-	                                                        height,
-	                                                        1,
-	                                                        D3DUSAGE_DYNAMIC,
-	                                                        D3DFMT_A8R8G8B8,
-	                                                        D3DPOOL_SYSTEMMEM,
-	                                                        &tmp_tex,
-	                                                        nullptr);
-	if (res != D3D_OK)
-		return false;
+	assert(id != reinterpret_cast<tex_id>(0));
 
-	D3DLOCKED_RECT rect;
-	res = tmp_tex->LockRect(0, &rect, nullptr, D3DLOCK_DISCARD);
-	if (res != D3D_OK)
-	{
-		tmp_tex->Release();
-		return false;
-	}
-
-	std::copy(rabg,
-	          rabg + (width * height * sizeof(std::remove_pointer_t<decltype(rabg)>) * 4u),
-	          reinterpret_cast<uint8_t*>(rect.pBits));
-
-	res = tmp_tex->UnlockRect(0);
-	if (res != D3D_OK)
-	{
-		tmp_tex->Release();
-		return false;
-	}
-
-	res = _device_ptr->UpdateTexture(tmp_tex, reinterpret_cast<IDirect3DTexture9*>(id));
-
-	tmp_tex->Release();
-	return (res == D3D_OK);
+	return _tex_dict.set_tex_data(_device_ptr, reinterpret_cast<size_t>(id) - 1u, rabg, width, height);
 }
 
 
 bool d3d9_manager::delete_texture(const tex_id id)
 {
 	assert(id != reinterpret_cast<tex_id>(0));
-	reinterpret_cast<IDirect3DTexture9*>(id)->Release();
+	_tex_dict.destroy_texture(reinterpret_cast<size_t>(id) - 1u);
 	return true;
 }

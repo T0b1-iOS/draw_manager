@@ -271,12 +271,6 @@ void user_thread_impl()
 			font       = draw_manager->add_font(font_path, 20.f, false, true);
 		}
 
-		if (reset_tex.load())
-		{
-			tex       = create_texture();
-			reset_tex = false;
-		}
-
 		const auto buf = draw_manager->get_buffer(buffer_idx);
 
 		std::snprintf(buffer, 128, "Current FPS: %d", fps.load());
@@ -337,16 +331,8 @@ void user_thread_impl()
 
 void reset_d3d9_device()
 {
-	const auto tex_ptr = reinterpret_cast<IDirect3DTexture9*>(tex.load());
-	if (tex_ptr)
-		tex_ptr->Release();
 	reinterpret_cast<util::draw::d3d9_manager*>(draw_manager.get())->invalidate_device_objects();
-	tex = nullptr;
-	// force the old texture out of the swapchain, you would normally hook reset and manage that
-	if (buffer_idx != -1)
-		draw_manager->swap_buffers(buffer_idx);
 	const auto res = d3d9_device->Reset(&d3d9_present_params);
 	assert(res == D3D_OK);
 	reinterpret_cast<util::draw::d3d9_manager*>(draw_manager.get())->create_device_objects();
-	reset_tex = true;
 }

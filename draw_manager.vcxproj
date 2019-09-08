@@ -150,6 +150,7 @@
     <ClCompile Include="font.cpp" />
     <ClCompile Include="impl\d3d9_manager.cpp" />
     <ClCompile Include="impl\shaders.cpp" />
+    <ClCompile Include="impl\tex_dict.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +158,7 @@
     <ClInclude Include="font.hpp" />
     <ClInclude Include="impl\d3d9_manager.hpp" />
     <ClInclude Include="impl\shaders.hpp" />
+    <ClInclude Include="impl\tex_dict.h" />
     <ClInclude Include="math.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

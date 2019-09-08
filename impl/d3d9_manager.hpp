@@ -5,6 +5,8 @@
 #include <d3d9.h>
 #include <d3dx9.h>
 
+#include "tex_dict.h"
+
 namespace util::draw
 {
 	struct d3d9_manager : public draw_manager
@@ -44,6 +46,7 @@ namespace util::draw
 
 	private:
 		IDirect3DDevice9 *_device_ptr = nullptr;
+		d3d9_tex_dict _tex_dict{};
 
 		struct
 		{
