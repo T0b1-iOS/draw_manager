@@ -26,8 +26,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 This software is based upon dear imgui by Omar Cornut(https://github.com/ocornut/imgui):
+=====================
 
 The MIT License (MIT)
+=====================
 
 Copyright (c) 2014-2019 Omar Cornut
 
