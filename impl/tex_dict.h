@@ -91,7 +91,8 @@ namespace util::draw
 		{
 			std::scoped_lock g(_mutex);
 			for (auto &tex : _textures)
-				tex.create(device);
+				if (!tex.free)
+					tex.create(device);
 		}
 
 	protected:
