@@ -600,23 +600,26 @@ namespace util::draw
 		//TODO: filename without backslashes translated to default windows font dir
 		font* add_font(const char *file,
 		               float size,
-		               bool italic        = false,
-		               bool bold          = false,
-		               GLYPH_RANGES range = GLYPH_RANGE_LATIN)
+		               bool italic          = false,
+		               bool bold            = false,
+		               GLYPH_RANGES range   = GLYPH_RANGE_LATIN,
+		               int rasterizer_flags = 0)
 		const;
 		font* add_font(const char *file,
 		               float size,
 		               const font_wchar *glyph_ranges,
-		               bool italic = false,
-		               bool bold   = false) const;
+		               bool italic          = false,
+		               bool bold            = false,
+		               int rasterizer_flags = 0) const;
 
 		// this does not copy the font data so keep the buffer alive until you remove the font :)
 		font* add_font_mem(uint8_t *data,
 		                   size_t data_size,
 		                   float font_size,
-		                   bool italic        = false,
-		                   bool bold          = false,
-		                   GLYPH_RANGES range = GLYPH_RANGE_LATIN)
+		                   bool italic          = false,
+		                   bool bold            = false,
+		                   GLYPH_RANGES range   = GLYPH_RANGE_LATIN,
+		                   int rasterizer_flags = 0)
 		const;
 		void remove_font(const font *) const;
 

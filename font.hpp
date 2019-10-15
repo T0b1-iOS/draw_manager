@@ -51,7 +51,10 @@ namespace util::draw
 		// Strong hinting algorithm that should only be used for monochrome output.
 		BOLD = 1 << 5,
 		// Styling: Should we artificially embolden the font?
-		OBLIQUE = 1 << 6 // Styling: Should we slant the font, emulating italic style?
+		OBLIQUE = 1 << 6,    
+		// Styling: Should we slant the font, emulating italic style?
+        NO_ANTIALIASING = 1 << 7 
+		// Disable anti-aliasing. Combine this with MonoHinting for best results!
 	};
 
 

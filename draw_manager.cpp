@@ -1319,13 +1319,16 @@ font* draw_manager::add_font(const char *file,
                              const float size,
                              const bool italic,
                              const bool bold,
-                             const GLYPH_RANGES range) const
+                             const GLYPH_RANGES range,
+                             const int rasterizer_flags) const
 {
 	auto font_cfg = font_config();
 	if (italic)
 		font_cfg.rasterizer_flags |= OBLIQUE;
 	if (bold)
 		font_cfg.rasterizer_flags |= BOLD;
+
+	font_cfg.rasterizer_flags |= rasterizer_flags;
 
 	const font_wchar *ranges = nullptr;
 	if (range & GLYPH_RANGE_LATIN)
@@ -1340,13 +1343,16 @@ font* draw_manager::add_font(const char *file,
                              float size,
                              const font_wchar *glyph_ranges,
                              const bool italic,
-                             const bool bold) const
+                             const bool bold,
+                             const int rasterizer_flags) const
 {
 	auto font_cfg = font_config();
 	if (italic)
 		font_cfg.rasterizer_flags |= OBLIQUE;
 	if (bold)
 		font_cfg.rasterizer_flags |= BOLD;
+
+	font_cfg.rasterizer_flags |= rasterizer_flags;
 
 	return fonts->add_font_from_ttf(file, size, &font_cfg, glyph_ranges);
 }
@@ -1356,13 +1362,16 @@ font* draw_manager::add_font_mem(uint8_t *data,
                                  float font_size,
                                  bool italic,
                                  bool bold,
-                                 GLYPH_RANGES range) const
+                                 GLYPH_RANGES range,
+                                 const int rasterizer_flags) const
 {
 	auto font_cfg = font_config();
 	if (italic)
 		font_cfg.rasterizer_flags |= OBLIQUE;
 	if (bold)
 		font_cfg.rasterizer_flags |= BOLD;
+
+	font_cfg.rasterizer_flags |= rasterizer_flags;
 
 	const font_wchar *ranges = nullptr;
 	if (range & GLYPH_RANGE_LATIN)
