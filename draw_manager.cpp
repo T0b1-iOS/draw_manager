@@ -52,8 +52,9 @@ rect draw_buffer::clip_rect_to_cur_rect(const rect& clip)
 
 void draw_buffer::update_clip_rect()
 {
-	if (!cmds.empty() && !clip_rect_stack.empty() && cur_clip_rect() == cmds.back().clip_rect.float_rect() &&
-		clip_rect_stack.back().second == cmds.back().circle_scissor)
+	if (!cmds.empty() && !clip_rect_stack.empty()
+		&& cur_clip_rect() == cmds.back().clip_rect.float_rect()
+		&& clip_rect_stack.back().second == cmds.back().circle_scissor)
 		return;
 
 	if (!cmds.empty())
@@ -65,6 +66,7 @@ void draw_buffer::update_clip_rect()
 			cur_cmd.circle_scissor = clip_rect_stack.empty() ? false : clip_rect_stack.back().second;
 			cur_cmd.tex_id = cur_tex_id();
 			cur_cmd.font_texture = (cur_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr);
+			cur_cmd.native_texture = !cmds.empty() && cmds.back().native_texture;
 			return;
 		}
 	}
@@ -75,6 +77,7 @@ void draw_buffer::update_clip_rect()
 	new_cmd.elem_count = 0;
 	new_cmd.tex_id = cur_tex_id();
 	new_cmd.font_texture = (new_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr);
+	new_cmd.native_texture = !cmds.empty() && cmds.back().native_texture;
 	if (!cmds.empty())
 		new_cmd.key_color = cmds.back().key_color;
 
@@ -102,10 +105,11 @@ void draw_buffer::pop_font()
 	cur_font = nullptr;
 }
 
-void draw_buffer::update_tex_id(const bool force_font)
+void draw_buffer::update_tex_id(const bool force_font, const bool native_texture)
 {
 	const auto cur_id = cur_tex_id();
-	if (!cmds.empty() && !tex_id_stack.empty() && cur_id == cmds.back().tex_id && !force_font)
+	if (!cmds.empty() && !tex_id_stack.empty() && cur_id == cmds.back().tex_id
+		&& !force_font && !native_texture)
 		return;
 
 	if (!cmds.empty())
@@ -116,8 +120,8 @@ void draw_buffer::update_tex_id(const bool force_font)
 			cur_cmd.clip_rect = cur_clip_rect();
 			cur_cmd.circle_scissor = clip_rect_stack.empty() ? false : clip_rect_stack.back().second;
 			cur_cmd.tex_id = cur_tex_id();
-			cur_cmd.font_texture = (cur_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr)
-				|| force_font;
+			cur_cmd.font_texture = (cur_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr) || force_font;
+			cur_cmd.native_texture = native_texture;
 			return;
 		}
 	}
@@ -128,7 +132,11 @@ void draw_buffer::update_tex_id(const bool force_font)
 	new_cmd.circle_scissor = clip_rect_stack.empty() ? false : clip_rect_stack.back().second;
 	new_cmd.elem_count = 0;
 	new_cmd.tex_id = cur_id;
-	new_cmd.font_texture = (cur_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr) || force_font;
+	new_cmd.font_texture =
+		(cur_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr)
+		|| force_font;
+	new_cmd.native_texture = native_texture;
+
 	if (!cmds.empty())
 		new_cmd.key_color = cmds.back().key_color;
 
@@ -147,6 +155,8 @@ size_t draw_buffer::force_new_cmd()
 	new_cmd.elem_count = 0;
 	new_cmd.tex_id = cur_tex_id();
 	new_cmd.font_texture = (new_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr);
+	new_cmd.native_texture = !cmds.empty() && cmds.back().native_texture;
+
 	if (!cmds.empty())
 		new_cmd.key_color = cmds.back().key_color;
 
@@ -192,6 +202,7 @@ void draw_buffer::set_blur(const uint8_t strength)
 	new_cmd.tex_id = cur_tex_id();
 	new_cmd.font_texture = (new_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr);
 	new_cmd.blur_strength = strength;
+	new_cmd.native_texture = !cmds.empty() && cmds.back().native_texture;
 	if (!cmds.empty())
 		new_cmd.key_color = cmds.back().key_color;
 
@@ -206,8 +217,10 @@ void draw_buffer::set_key_color(const color col)
 	new_cmd.circle_scissor = clip_rect_stack.empty() ? false : clip_rect_stack.back().second;
 	new_cmd.elem_count = 0;
 	new_cmd.tex_id = cur_tex_id();
-	new_cmd.font_texture = (new_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr);
+	new_cmd.font_texture = (new_cmd.tex_id == manager->fonts->tex_id
+		&& manager->fonts->tex_id != nullptr);
 	new_cmd.key_color = col;
+	new_cmd.native_texture = !cmds.empty() && cmds.back().native_texture;
 
 	cmds.emplace_back(new_cmd);
 }
@@ -276,9 +289,9 @@ static inline void generate_circle_metadata(size_t& start_idx, size_t& point_cou
 	while (start_degree > 360.f)
 		start_degree -= 360.f;
 
-	point_count = std::clamp(static_cast<size_t>(degrees * (1 / 360.f) * circle_points.size()) + 1, 0u, circle_points.size());
+	point_count = std::clamp(static_cast<size_t>(degrees * (1 / 360.f) * circle_points.size()) + 1, static_cast<size_t>(0u), circle_points.size());
 	// TODO: how do we properly calculate the index here?
-	start_idx = std::clamp(static_cast<size_t>((start_degree * (1 / 360.f)) * circle_points.size()), 0u, circle_points.size() - 1);
+	start_idx = std::clamp(static_cast<size_t>((start_degree * (1 / 360.f)) * circle_points.size()), static_cast<size_t>(0u), circle_points.size() - 1);
 	// r = 1 -> 4 points so skip_count = CIRCLE_POINTS_COUNT, r = 100 -> all points so skip_count = 0
 	skip_count = std::clamp(CIRCLE_POINT_COUNT - static_cast<int>((radius - 1.f) * (CIRCLE_POINT_COUNT / 100.f) * 2.5f), 0, CIRCLE_POINT_COUNT);
 	if (skip_count > 0)
@@ -287,7 +300,7 @@ static inline void generate_circle_metadata(size_t& start_idx, size_t& point_cou
 
 static inline void generate_circle_points(position* point_buf, const size_t start_idx, const size_t point_count, const size_t skip_count, const pos_type radius, const position& center)
 {
-	auto cur_idx = std::clamp(start_idx, 0u, circle_points.size());
+	auto cur_idx = std::clamp(start_idx, static_cast<size_t>(0u), circle_points.size());
 	for (auto i = 0u; i < point_count; ++i)
 	{
 		if (cur_idx >= circle_points.size())

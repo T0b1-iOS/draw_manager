@@ -31,7 +31,7 @@ Feature List
 * multithreading as it operates like a swapchain
 * multiple independent buffers which can be sorted by priority & parent-child hierarchy
 * independent of actual drawing implementation(confirmed to work for d3d9 & csgo's surface)
-* supports bluring/color-keying (& circle scissors if they are implemented)
+* supports bluring, color-keying & circle scissors if they are implemented
 
 Kinda looks like this(after a resize and d3d9)
 ------

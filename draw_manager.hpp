@@ -82,6 +82,7 @@ namespace util::draw
 			tex_id tex_id;
 			bool font_texture = false;
 			bool circle_scissor = false;
+			bool native_texture = false;
 			uint8_t blur_strength = 0;
 			std::uint32_t vtx_count = 0;
 			std::function<void(const draw_cmd*)> callback =
@@ -207,10 +208,10 @@ namespace util::draw
 
 		void push_font(font* font);
 
-		void push_tex_id(tex_id id, bool force_font = false)
+		void push_tex_id(tex_id id, const bool force_font = false, const bool native_texture = false)
 		{
 			tex_id_stack.emplace_back(id);
-			update_tex_id(force_font);
+			update_tex_id(force_font, native_texture);
 		}
 
 		void pop_tex_id()
@@ -221,7 +222,7 @@ namespace util::draw
 		}
 
 		void pop_font();
-		void update_tex_id(bool force_font = false);
+		void update_tex_id(bool force_font = false, bool native_texture = false);
 
 		// This will force a new command to be started and return the index of it
 		size_t force_new_cmd();
@@ -576,7 +577,7 @@ namespace util::draw
 		draw_buffer* get_buffer(const size_t);
 		void swap_buffers(const size_t);
 
-		void update_screen_size(const position& screen_size)
+		virtual void update_screen_size(const position& screen_size)
 		{
 			this->_screen_size = screen_size;
 		}
@@ -624,6 +625,7 @@ namespace util::draw
 		// also it may not even do what the name suggests
 		// the d3d9_manager feeds it directly to directx while the csgo impl converts the data to bgra
 		virtual bool set_texture_rabg(tex_id id, const uint8_t* rabg, uint32_t width, uint32_t height) = 0;
+		virtual bool texture_size(tex_id id, uint32_t& width, uint32_t& height) = 0;
 		virtual bool delete_texture(tex_id id) = 0;
 
 		virtual void draw() = 0;

@@ -1,11 +1,19 @@
 #pragma once
 
-//TODO: Include compiled .fx files as resources
-//TODO: Also make pixel shader clamp out of bounds 
-namespace util::draw::shaders
+namespace shaders
 {
-	extern const char *pixel_shader;
-	extern const char *vertex_shader;
-	extern const char *key_shader;
-	extern const char *game_circle_scissor;
-}
+	namespace vertex
+	{
+#include "shaders/cpp/vertex/generic.h"
+	}
+
+	namespace pixel
+	{
+#include "shaders/cpp/pixel/blur.h"
+#include "shaders/cpp/pixel/key.h"
+#include "shaders/cpp/pixel/scissor.h"
+#include "shaders/cpp/pixel/scissor_blur.h"
+#include "shaders/cpp/pixel/scissor_key.h"
+	}  // namespace pixel
+
+}  // namespace shaders

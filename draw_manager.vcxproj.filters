@@ -21,9 +21,6 @@
     <ClCompile Include="impl\d3d9_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="impl\shaders.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="draw_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -53,5 +50,17 @@
     <ClInclude Include="impl\tex_dict.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="impl\shaders\d3d9\include\blur.hlsli" />
+    <None Include="impl\shaders\d3d9\include\types.hlsli" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="impl\shaders\d3d9\pixel\blur_pixel.hlsl" />
+    <FxCompile Include="impl\shaders\d3d9\pixel\key_pixel.hlsl" />
+    <FxCompile Include="impl\shaders\d3d9\pixel\scissor_blur_pixel.hlsl" />
+    <FxCompile Include="impl\shaders\d3d9\pixel\scissor_key_pixel.hlsl" />
+    <FxCompile Include="impl\shaders\d3d9\pixel\scissor_pixel.hlsl" />
+    <FxCompile Include="impl\shaders\d3d9\vertex\generic_vertex.hlsl" />
   </ItemGroup>
 </Project>

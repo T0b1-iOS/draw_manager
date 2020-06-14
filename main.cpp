@@ -193,7 +193,7 @@ bool create_draw_context()
 	std::memset(&d3d9_present_params, 0, sizeof(d3d9_present_params));
 	d3d9_present_params.Windowed               = true;
 	d3d9_present_params.SwapEffect             = D3DSWAPEFFECT_DISCARD;
-	d3d9_present_params.BackBufferFormat       = D3DFMT_UNKNOWN;
+	d3d9_present_params.BackBufferFormat       = D3DFMT_A8R8G8B8;
 	d3d9_present_params.EnableAutoDepthStencil = true;
 	d3d9_present_params.AutoDepthStencilFormat = D3DFMT_D16;
 	d3d9_present_params.PresentationInterval   = D3DPRESENT_INTERVAL_IMMEDIATE;
@@ -272,7 +272,7 @@ void user_thread_impl()
 		}
 
 		const auto buf = draw_manager->get_buffer(buffer_idx);
-
+		
 		std::snprintf(buffer, 128, "Current FPS: %d", fps.load());
 		const auto size = buf->text_size(font, buffer);
 		buf->text(font, buffer, {10, 10}, math::color_rgba::white());
@@ -317,6 +317,17 @@ void user_thread_impl()
 		buf->prim_rect_uv({820, 400}, {1020, 600}, {0, 0}, {1, 1}, math::color_rgba::white());
 		buf->pop_tex_id();
 		buf->set_key_color(math::color_rgba{0, 0, 0, 0});
+
+		buf->push_clip_rect({ 1030, 400 }, { 1230, 600 }, true);
+		buf->push_tex_id(tex);
+		
+		buf->set_key_color(math::color_rgba::green());
+		buf->prim_reserve(6, 4);
+		buf->prim_rect_uv({ 1030, 400 }, { 1230, 600 }, { 0, 0 }, { 1, 1 }, math::color_rgba::white());
+		buf->set_key_color(math::color_rgba{ 0, 0, 0, 0 });
+		
+		buf->pop_tex_id();
+		buf->pop_clip_rect();
 
 		util::draw::position positions[4] = {
 			{600, 50},
