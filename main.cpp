@@ -288,7 +288,15 @@ void user_thread_impl()
 		                     math::color_rgba::blue(),
 		                     math::color_rgba::green());
 
-		buf->circle_filled({400, 200}, 150, math::color_rgba{0, 0, 0, 0}, math::color_rgba::blue(), 64);
+		buf->line({ 0.f, 350.f }, { 100.f, 230.f }, math::color_rgba::red(), math::color_rgba::blue(), 1.f, true);
+		buf->line({ 100.f, 230.f }, { 200.f, 350.f }, math::color_rgba::blue(), math::color_rgba::green(), 1.f, true);
+		buf->line({ 200.f, 350.f }, { 0.f, 350.f }, math::color_rgba::green(), math::color_rgba::red(), 1.f, true);
+
+		static auto degrees = 360.f;
+		buf->circle_filled({400, 200}, 150, math::color_rgba{0, 0, 0, 0}, math::color_rgba::blue(), 64, degrees, 90.f);
+		degrees -= 1.f;
+		if (degrees < 0.f)
+			degrees = 360.f;
 
 		buf->push_tex_id(tex);
 		buf->prim_reserve(6, 4);

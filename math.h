@@ -51,7 +51,7 @@ namespace math
 
 		float length() const
 		{
-			return std::sqrt(length_sqr());
+			return sqrtf(length_sqr());
 		}
 
 		float reciprocal_length() const
@@ -193,6 +193,16 @@ namespace math
 			r.x /= o.x;
 			r.y /= o.y;
 			return r;
+		}
+
+		const float& operator[](const size_t idx) const
+		{
+			return reinterpret_cast<const float*>(this)[idx];
+		}
+
+		float& operator[](const size_t idx)
+		{
+			return reinterpret_cast<float*>(this)[idx];
 		}
 	};
 
