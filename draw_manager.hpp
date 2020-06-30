@@ -242,20 +242,22 @@ namespace util::draw
 			const position& p3,
 			const pack_color col_p1,
 			const pack_color col_p2,
-			const pack_color col_p3);
+			const pack_color col_p3,
+			const bool anti_aliased = false);
 
 		void triangle_filled(const position& p1,
 			const position& p2,
 			const position& p3,
 			const pack_color col_p1,
-			const pack_color col_p2)
+			const pack_color col_p2,
+			const bool anti_aliased = false)
 		{
-			triangle_filled(p1, p2, p3, col_p1, col_p2, col_p2);
+			triangle_filled(p1, p2, p3, col_p1, col_p2, col_p2, anti_aliased);
 		}
 
-		void triangle_filled(const position& p1, const position& p2, const position& p3, const pack_color col)
+		void triangle_filled(const position& p1, const position& p2, const position& p3, const pack_color col, const bool anti_aliased = false)
 		{
-			triangle_filled(p1, p2, p3, col, col, col);
+			triangle_filled(p1, p2, p3, col, col, col, anti_aliased);
 		}
 
 		void rectangle_filled(const position& top_left,

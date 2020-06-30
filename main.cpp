@@ -286,11 +286,7 @@ void user_thread_impl()
 		                     {200, 350},
 		                     math::color_rgba::red(),
 		                     math::color_rgba::blue(),
-		                     math::color_rgba::green());
-
-		buf->line({ 0.f, 350.f }, { 100.f, 230.f }, math::color_rgba::red(), math::color_rgba::blue(), 1.f, true);
-		buf->line({ 100.f, 230.f }, { 200.f, 350.f }, math::color_rgba::blue(), math::color_rgba::green(), 1.f, true);
-		buf->line({ 200.f, 350.f }, { 0.f, 350.f }, math::color_rgba::green(), math::color_rgba::red(), 1.f, true);
+		                     math::color_rgba::green(), true);
 
 		static auto degrees = 360.f;
 		buf->circle_filled({400, 200}, 150, math::color_rgba{0, 0, 0, 0}, math::color_rgba::blue(), 64, degrees, 90.f);

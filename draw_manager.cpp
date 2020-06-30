@@ -230,7 +230,8 @@ void draw_buffer::triangle_filled(const position& p1,
 	const position& p3,
 	const pack_color col_p1,
 	const pack_color col_p2,
-	const pack_color col_p3)
+	const pack_color col_p3,
+	const bool anti_aliased)
 {
 	reserve_primitives(3, 3);
 	const position uv = { 1.f, 1.f };
@@ -241,6 +242,13 @@ void draw_buffer::triangle_filled(const position& p1,
 	write_idx(cur_idx + 1);
 	write_idx(cur_idx + 2);
 	cur_idx += 3;
+
+	if(anti_aliased)
+	{
+		line(p1, p2, col_p1, col_p2, 1.f, true);
+		line(p2, p3, col_p2, col_p3, 1.f, true);
+		line(p3, p1, col_p3, col_p1, 1.f, true);
+	}
 }
 
 void draw_buffer::rectangle_filled(const position& top_left,

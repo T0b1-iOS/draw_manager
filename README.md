@@ -9,7 +9,7 @@ How to actually draw is pretty specific to your environment but to get an idea y
 
 You also need to provide freetype headers & binaries(https://www.freetype.org/download.html) as well as stb_rectpack.h(https://github.com/nothings/stb/blob/master/stb_rect_pack.h)
 
-Usage for Draing
+Usage for Drawing
 ------
 
 ```cpp
@@ -34,6 +34,6 @@ Feature List
 * independent of actual drawing implementation(confirmed to work for d3d9 & csgo's surface)
 * supports bluring, color-keying & circle scissors if they are implemented
 
-Kinda looks like this(after a resize and d3d9)
+Looks like this (after a resize and with the d3d9 implementation)
 ------
-![preview](https://i.imgur.com/GNCDkpe.png)
+![preview](https://i.imgur.com/OKl12dH.png)
