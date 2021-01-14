@@ -1,4 +1,6 @@
 #pragma once
+#include <algorithm>
+
 #include "font.hpp"
 
 #include <functional>
@@ -79,6 +81,7 @@ namespace util::draw
 		{
 			std::uint32_t elem_count;
 			clip_rect clip_rect;
+			draw::clip_rect circle_outer_clip;
 			tex_id tex_id;
 			bool font_texture = false;
 			bool circle_scissor = false;
@@ -91,6 +94,7 @@ namespace util::draw
 			std::shared_ptr<callback_data> callback_data = nullptr; //Data for callback
 			// If color matches it will be made transparent, alpha indicates enabling of the feature
 			color key_color = { 0, 0, 0, 0 };
+			// TODO: optionally disable these with a define since their use case is limited and they just waste space in the draw_cmd?
 			// This will be used as the model matrix, e.g. "model space to world space", basically a tool to transform all vertexes
 			matrix matrix = {
 				vec4f{1.f, 0.f, 0.f, 0.f},
@@ -167,11 +171,16 @@ namespace util::draw
 		}
 
 		rect cur_clip_rect();
+		rect cur_non_circle_clip_rect();
 		rect clip_rect_to_cur_rect(const rect&);
 
 		void push_clip_rect(const position& min, const position& max, const bool circle = false) //rvalue reference?
 		{
-			clip_rect_stack.emplace_back(std::make_pair(clip_rect_to_cur_rect(rect{ min, max }), circle));
+			auto new_rect = rect{ min, max };
+			if (!circle)
+				new_rect = clip_rect_to_cur_rect(new_rect);
+			
+			clip_rect_stack.emplace_back(std::make_pair(new_rect, circle));
 			update_clip_rect();
 		}
 
@@ -181,14 +190,18 @@ namespace util::draw
 			const pos_type max_y,
 			const bool circle = false)
 		{
-			clip_rect_stack.emplace_back(std::make_pair(clip_rect_to_cur_rect(rect{ min_x, min_y, max_x, max_y }),
-				circle));
+			auto new_rect = rect{ min_x, min_y, max_x, max_y };
+			if (!circle)
+				new_rect = clip_rect_to_cur_rect(new_rect);
+			
+			clip_rect_stack.emplace_back(std::make_pair(new_rect, circle));
 			update_clip_rect();
 		}
 
 		void push_clip_rect(const rect& clip_rect, const bool circle = false)
 		{
-			clip_rect_stack.emplace_back(std::make_pair(clip_rect_to_cur_rect(clip_rect), circle));
+			const auto new_rect = circle ? clip_rect : clip_rect_to_cur_rect(clip_rect);
+			clip_rect_stack.emplace_back(std::make_pair(new_rect, circle));
 			update_clip_rect();
 		}
 

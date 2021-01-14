@@ -38,6 +38,18 @@ rect draw_buffer::cur_clip_rect()
 	return clip_rect_stack.back().first;
 }
 
+rect draw_buffer::cur_non_circle_clip_rect()
+{
+	for (const auto& clip_entry : clip_rect_stack)
+	{
+		if (clip_entry.second)
+			continue;
+		return clip_entry.first;
+	}
+
+	return rect{ position{0.f, 0.f}, manager->get_screen_size() };
+}
+
 rect draw_buffer::clip_rect_to_cur_rect(const rect& clip)
 {
 	const auto cur_rect = cur_clip_rect();
@@ -64,6 +76,8 @@ void draw_buffer::update_clip_rect()
 		{
 			cur_cmd.clip_rect = cur_clip_rect();
 			cur_cmd.circle_scissor = clip_rect_stack.empty() ? false : clip_rect_stack.back().second;
+			if (cur_cmd.circle_scissor)
+				cur_cmd.circle_outer_clip = cur_non_circle_clip_rect();
 			cur_cmd.tex_id = cur_tex_id();
 			cur_cmd.font_texture = (cur_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr);
 			cur_cmd.native_texture = !cmds.empty() && cmds.back().native_texture;
@@ -74,6 +88,8 @@ void draw_buffer::update_clip_rect()
 	draw_cmd new_cmd = {};
 	new_cmd.clip_rect = cur_clip_rect();
 	new_cmd.circle_scissor = clip_rect_stack.empty() ? false : clip_rect_stack.back().second;
+	if (new_cmd.circle_scissor)
+		new_cmd.circle_outer_clip = cur_non_circle_clip_rect();
 	new_cmd.elem_count = 0;
 	new_cmd.tex_id = cur_tex_id();
 	new_cmd.font_texture = (new_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr);
@@ -119,6 +135,8 @@ void draw_buffer::update_tex_id(const bool force_font, const bool native_texture
 		{
 			cur_cmd.clip_rect = cur_clip_rect();
 			cur_cmd.circle_scissor = clip_rect_stack.empty() ? false : clip_rect_stack.back().second;
+			if (cur_cmd.circle_scissor)
+				cur_cmd.circle_outer_clip = cur_non_circle_clip_rect();
 			cur_cmd.tex_id = cur_tex_id();
 			cur_cmd.font_texture = (cur_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr) || force_font;
 			cur_cmd.native_texture = native_texture;
@@ -130,6 +148,8 @@ void draw_buffer::update_tex_id(const bool force_font, const bool native_texture
 	draw_cmd new_cmd = {};
 	new_cmd.clip_rect = cur_clip_rect();
 	new_cmd.circle_scissor = clip_rect_stack.empty() ? false : clip_rect_stack.back().second;
+	if (new_cmd.circle_scissor)
+		new_cmd.circle_outer_clip = cur_non_circle_clip_rect();
 	new_cmd.elem_count = 0;
 	new_cmd.tex_id = cur_id;
 	new_cmd.font_texture =
@@ -152,6 +172,8 @@ size_t draw_buffer::force_new_cmd()
 	draw_cmd new_cmd = {};
 	new_cmd.clip_rect = cur_clip_rect();
 	new_cmd.circle_scissor = clip_rect_stack.empty() ? false : clip_rect_stack.back().second;
+	if (new_cmd.circle_scissor)
+		new_cmd.circle_outer_clip = cur_non_circle_clip_rect();
 	new_cmd.elem_count = 0;
 	new_cmd.tex_id = cur_tex_id();
 	new_cmd.font_texture = (new_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr);
@@ -198,6 +220,8 @@ void draw_buffer::set_blur(const uint8_t strength)
 	draw_cmd new_cmd = {};
 	new_cmd.clip_rect = cur_clip_rect();
 	new_cmd.circle_scissor = clip_rect_stack.empty() ? false : clip_rect_stack.back().second;
+	if (new_cmd.circle_scissor)
+		new_cmd.circle_outer_clip = cur_non_circle_clip_rect();
 	new_cmd.elem_count = 0;
 	new_cmd.tex_id = cur_tex_id();
 	new_cmd.font_texture = (new_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr);
@@ -215,6 +239,8 @@ void draw_buffer::set_key_color(const color col)
 	draw_cmd new_cmd = {};
 	new_cmd.clip_rect = cur_clip_rect();
 	new_cmd.circle_scissor = clip_rect_stack.empty() ? false : clip_rect_stack.back().second;
+	if (new_cmd.circle_scissor)
+		new_cmd.circle_outer_clip = cur_non_circle_clip_rect();
 	new_cmd.elem_count = 0;
 	new_cmd.tex_id = cur_tex_id();
 	new_cmd.font_texture = (new_cmd.tex_id == manager->fonts->tex_id
@@ -300,10 +326,14 @@ static inline void generate_circle_metadata(size_t& start_idx, size_t& point_cou
 	point_count = std::clamp(static_cast<size_t>(degrees * (1 / 360.f) * circle_points.size()) + 1, static_cast<size_t>(0u), circle_points.size());
 	// TODO: how do we properly calculate the index here?
 	start_idx = std::clamp(static_cast<size_t>((start_degree * (1 / 360.f)) * circle_points.size()), static_cast<size_t>(0u), circle_points.size() - 1);
+#if 0
 	// r = 1 -> 4 points so skip_count = CIRCLE_POINTS_COUNT, r = 100 -> all points so skip_count = 0
 	skip_count = std::clamp(CIRCLE_POINT_COUNT - static_cast<int>((radius - 1.f) * (CIRCLE_POINT_COUNT / 100.f) * 2.5f), 0, CIRCLE_POINT_COUNT);
 	if (skip_count > 0)
 		point_count /= skip_count;
+#else
+	skip_count = 0;
+#endif
 }
 
 static inline void generate_circle_points(position* point_buf, const size_t start_idx, const size_t point_count, const size_t skip_count, const pos_type radius, const position& center)

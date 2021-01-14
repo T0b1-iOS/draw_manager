@@ -196,6 +196,8 @@ void d3d9_manager::draw()
 			}
 			else if (cmd.elem_count > 0)
 			{
+				RECT clip = { cmd.clip_rect.x, cmd.clip_rect.y, cmd.clip_rect.z,
+													 cmd.clip_rect.w };
 				if (cmd.circle_scissor)
 				{
 					// x,y = center; z = radius*radius; screenSpace
@@ -210,10 +212,11 @@ void d3d9_manager::draw()
 					_device_ptr->SetVertexShader(_r.vertex_shader);
 					_device_ptr->SetPixelShader(_r.scissor_pixel_shader);
 					_device_ptr->SetPixelShaderConstantF(5, circle_def, 1);
+
+					clip = { cmd.circle_outer_clip.x, cmd.circle_outer_clip.y, cmd.circle_outer_clip.z,
+													 cmd.circle_outer_clip.w };
 				}
 
-				const RECT clip = { cmd.clip_rect.x, cmd.clip_rect.y, cmd.clip_rect.z,
-													 cmd.clip_rect.w };
 				auto tex_id = cmd.tex_id;
 				if (cmd.font_texture)
 					tex_id = font_tex;
