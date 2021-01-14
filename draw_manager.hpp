@@ -25,9 +25,9 @@ namespace util::draw
 		virtual ~callback_data() = default;
 	};
 
-	struct vecl
+	struct vecs
 	{
-		long x, y;
+		short x, y;
 	};
 
 	struct clip_rect
@@ -36,12 +36,12 @@ namespace util::draw
 		{
 			struct
 			{
-				long x, y, z, w;
+				short x, y, z, w;
 			};
 
 			struct
 			{
-				vecl xy, zw;
+				vecs xy, zw;
 			};
 		};
 
@@ -59,10 +59,10 @@ namespace util::draw
 
 		clip_rect(const rect& r)
 		{
-			x = std::lround(r.x);
-			y = std::lround(r.y);
-			z = std::lround(r.z);
-			w = std::lround(r.w);
+			x = static_cast<short>(std::lround(r.x));
+			y = static_cast<short>(std::lround(r.y));
+			z = static_cast<short>(std::lround(r.z));
+			w = static_cast<short>(std::lround(r.w));
 		}
 
 		bool operator!=(const clip_rect& o) const
