@@ -605,14 +605,14 @@ void d3d9_manager::invalidate_shader()
 		_r.scissor_blur_y_shader->Release();
 		_r.scissor_blur_y_shader = nullptr;
 	}
-	if (_r.scissor_blur_y_shader) {
-		_r.scissor_blur_y_shader->Release();
-		_r.scissor_blur_y_shader = nullptr;
-	}
 	if (_r.scissor_key_shader)
 	{
 		_r.scissor_key_shader->Release();
 		_r.scissor_key_shader = nullptr;
+	}
+	if (_r.blur_x_pixel_shader) {
+		_r.blur_x_pixel_shader->Release();
+		_r.blur_x_pixel_shader = nullptr;
 	}
 	if (_r.blur_y_pixel_shader)
 	{
