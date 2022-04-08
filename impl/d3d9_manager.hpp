@@ -80,6 +80,7 @@ namespace util::draw
 			IDirect3DPixelShader9* pixel_shader{};
 			IDirect3DBaseTexture9* texture{};
 			unsigned long fvf{};
+			unsigned long aa_state;
 			D3DVIEWPORT9 vp{};
 		} _bak;
 

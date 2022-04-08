@@ -454,6 +454,7 @@ bool d3d9_manager::setup_draw_state()
 	_device_ptr->SetStreamSource(0, _vtx_buffer, 0, sizeof(d3d9_vertex));
 	_device_ptr->SetIndices(_idx_buffer);
 
+	_device_ptr->GetRenderState(D3DRS_MULTISAMPLEANTIALIAS, &_bak.aa_state);
 	_device_ptr->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, TRUE);
 	_device_ptr->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 	_device_ptr->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
@@ -516,6 +517,7 @@ void d3d9_manager::destroy_draw_state()
 	_device_ptr->SetTexture(0, _bak.texture);
 	_device_ptr->SetFVF(_bak.fvf);
 	_device_ptr->SetViewport(&_bak.vp);
+	_device_ptr->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, _bak.aa_state);
 
 	_device_ptr->SetSamplerState(0ul, D3DSAMP_SRGBTEXTURE, _sampler_srgb);
 	_device_ptr->SetSamplerState(0ul, D3DSAMP_ADDRESSW, _sampler_w);
