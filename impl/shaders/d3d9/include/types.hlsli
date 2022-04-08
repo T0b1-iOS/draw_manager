@@ -27,7 +27,7 @@ float4 dimension : register(c4);
 float4 scissor : register(c5);
 float4 key : register(c8);
 
-row_major float4x4 worldViewProj : register(c9);
+row_major float4x4 worldViewProj : register(c9); // 9-12
 
 /*bool overlay : register(b0);*/
 bool samplerAvailable : register(b1);

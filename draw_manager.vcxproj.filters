@@ -30,6 +30,9 @@
     <ClCompile Include="impl\tex_dict.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="impl\shaders\d3d9\pixel\scissor_blur_y.hlsl">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="impl\d3d9_manager.hpp">
@@ -54,13 +57,15 @@
   <ItemGroup>
     <None Include="impl\shaders\d3d9\include\blur.hlsli" />
     <None Include="impl\shaders\d3d9\include\types.hlsli" />
+    <None Include="impl\shaders\d3d9\include\scissor_blur.hlsli" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="impl\shaders\d3d9\pixel\blur_pixel.hlsl" />
-    <FxCompile Include="impl\shaders\d3d9\pixel\key_pixel.hlsl" />
-    <FxCompile Include="impl\shaders\d3d9\pixel\scissor_blur_pixel.hlsl" />
-    <FxCompile Include="impl\shaders\d3d9\pixel\scissor_key_pixel.hlsl" />
-    <FxCompile Include="impl\shaders\d3d9\pixel\scissor_pixel.hlsl" />
-    <FxCompile Include="impl\shaders\d3d9\vertex\generic_vertex.hlsl" />
+    <FxCompile Include="impl\shaders\d3d9\pixel\blur_x.hlsl" />
+    <FxCompile Include="impl\shaders\d3d9\pixel\blur_y.hlsl" />
+    <FxCompile Include="impl\shaders\d3d9\pixel\key.hlsl" />
+    <FxCompile Include="impl\shaders\d3d9\pixel\scissor_blur_x.hlsl" />
+    <FxCompile Include="impl\shaders\d3d9\pixel\scissor_key.hlsl" />
+    <FxCompile Include="impl\shaders\d3d9\pixel\scissor.hlsl" />
+    <FxCompile Include="impl\shaders\d3d9\vertex\generic.hlsl" />
   </ItemGroup>
 </Project>

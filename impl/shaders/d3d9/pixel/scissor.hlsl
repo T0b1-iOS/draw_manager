@@ -20,8 +20,6 @@ PS_OUTPUT main(VS_OUTPUT IN)
 	if (samplerAvailable)
 	{
 		OUT.color   = tex2D(curtex, IN.texcoord0);
-		OUT.color.a = 1;  // really ghetto fix
-		OUT.color *= IN.color0;
 	} else
 	{
 		OUT.color = IN.color0;

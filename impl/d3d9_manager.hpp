@@ -16,12 +16,15 @@ namespace util::draw
 
 		IDirect3DVertexShader9* vertex_shader = nullptr;
 
-		IDirect3DPixelShader9* pixel_shader = nullptr;
 		IDirect3DPixelShader9* key_shader = nullptr;
 
 		IDirect3DPixelShader9* scissor_pixel_shader = nullptr;
-		IDirect3DPixelShader9* scissor_blur_shader = nullptr;
+		IDirect3DPixelShader9* scissor_blur_x_shader = nullptr;
+		IDirect3DPixelShader9* scissor_blur_y_shader = nullptr;
 		IDirect3DPixelShader9* scissor_key_shader = nullptr;
+
+		IDirect3DPixelShader9* blur_x_pixel_shader = nullptr;
+		IDirect3DPixelShader9* blur_y_pixel_shader = nullptr;
 
 		IDirect3DTexture9* buffer_copy = nullptr;
 	};

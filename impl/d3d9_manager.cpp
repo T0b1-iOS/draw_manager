@@ -29,6 +29,12 @@ d3d9_manager::d3d9_manager(IDirect3DDevice9* device) : _device_ptr(device)
 	init();
 };
 
+float gauss(float sigma, float x) {
+	float tmp = 1.f / (std::sqrt(2 * 3.141592653589793) * sigma);
+	float tmp2 = std::exp(-0.5 * ((x * x) / (sigma * sigma)));
+	return tmp * tmp2;
+}
+
 void d3d9_manager::draw()
 {
 	//std::lock_guard<std::mutex> g(list_mutex);
@@ -154,7 +160,6 @@ void d3d9_manager::draw()
 	std::uint32_t vtx_offset = 0;
 	std::uint32_t idx_offset = 0;
 
-	_device_ptr->SetPixelShader(_r.pixel_shader);
 	_device_ptr->SetVertexShader(_r.vertex_shader);
 
 	D3DXVECTOR4 size_vec = { _screen_size.x, _screen_size.y, 0.f, 0.f };
@@ -182,6 +187,8 @@ void d3d9_manager::draw()
 	IDirect3DBaseTexture9* bak_tex = nullptr;
 	_device_ptr->GetTexture(1, &bak_tex);
 	_device_ptr->SetTexture(1, _r.buffer_copy);
+	_device_ptr->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_MIRROR);
+	_device_ptr->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_MIRROR);
 
 	_device_ptr->SetPixelShader(nullptr);
 	_device_ptr->SetVertexShader(nullptr);
@@ -235,16 +242,52 @@ void d3d9_manager::draw()
 				if (cmd.blur_strength)
 				{
 					_device_ptr->SetVertexShader(_r.vertex_shader);
-					_device_ptr->SetPixelShader(
-						cmd.circle_scissor ? _r.scissor_blur_shader : _r.pixel_shader);
-					for (auto i = 0; i < cmd.blur_strength; ++i)
-					{
-						_device_ptr->StretchRect(back_buffer, nullptr, target_surface,
-							nullptr, D3DTEXF_NONE);
-						_device_ptr->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, vtx_offset, 0,
-							cmd.vtx_count, idx_offset,
-							cmd.elem_count / 3);
+
+					// TODO: maybe precompute common values?
+					auto sample_count = std::min(cmd.blur_strength, uint8_t(95));
+					const auto sigma = static_cast<float>(sample_count) / 3.f;
+					std::array<float, 128> weights;
+					weights[0] = gauss(sigma, 0);
+					float sum = weights[0];
+					for (int i = 1; i <= sample_count; ++i) {
+						weights[i] = gauss(sigma, i);
+						if (weights[i] < 0.01) {
+							// cut off samples that basically don't contribute any value
+							sample_count = i;
+							break;
+						}
+						sum += weights[i] * 2.f;
 					}
+					float sum_inv = 1.f / sum;
+					for (int i = 0; i <= sample_count; ++i) {
+						weights[i] *= sum_inv;
+					}
+
+					float sample_vec[4] = {sample_count, 0, 0, 0 };
+					const auto f_count = (sample_count + 3) / 4; // round up
+					_device_ptr->SetPixelShaderConstantF(13, sample_vec, 1);
+					_device_ptr->SetPixelShaderConstantF(14, weights.data(), f_count);
+
+					_device_ptr->SetSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+					_device_ptr->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+
+					// TODO: maybe cache min/max coords in the cmd so we can say somewhat accurately where we draw?
+					_device_ptr->StretchRect(back_buffer, &clip, target_surface,
+						&clip, D3DTEXF_NONE);
+					_device_ptr->SetPixelShader(cmd.circle_scissor ? _r.scissor_blur_x_shader : _r.blur_x_pixel_shader);
+					_device_ptr->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, vtx_offset, 0,
+						cmd.vtx_count, idx_offset,
+						cmd.elem_count / 3);
+
+					_device_ptr->StretchRect(back_buffer, &clip, target_surface,
+						&clip, D3DTEXF_NONE);
+					_device_ptr->SetPixelShader(cmd.circle_scissor ? _r.scissor_blur_y_shader : _r.blur_y_pixel_shader);
+					_device_ptr->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, vtx_offset, 0,
+						cmd.vtx_count, idx_offset,
+						cmd.elem_count / 3);
+
+					_device_ptr->SetSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+					_device_ptr->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
 					_device_ptr->SetPixelShader(nullptr);
 					_device_ptr->SetVertexShader(nullptr);
 				}
@@ -314,12 +357,6 @@ void d3d9_manager::draw()
 
 void d3d9_manager::setup_shader()
 {
-	if (!_r.pixel_shader)
-	{
-		_device_ptr->CreatePixelShader(
-			reinterpret_cast<const DWORD*>(shaders::pixel::blur), &_r.pixel_shader);
-	}
-
 	if (!_r.vertex_shader)
 	{
 		_device_ptr->CreateVertexShader(
@@ -340,11 +377,18 @@ void d3d9_manager::setup_shader()
 			&_r.scissor_pixel_shader);
 	}
 
-	if (!_r.scissor_blur_shader)
+	if (!_r.scissor_blur_x_shader)
 	{
 		_device_ptr->CreatePixelShader(
-			reinterpret_cast<const DWORD*>(shaders::pixel::scissor_blur),
-			&_r.scissor_blur_shader);
+			reinterpret_cast<const DWORD*>(shaders::pixel::scissor_blur_x),
+			&_r.scissor_blur_x_shader);
+	}
+
+	if (!_r.scissor_blur_y_shader)
+	{
+		_device_ptr->CreatePixelShader(
+			reinterpret_cast<const DWORD*>(shaders::pixel::scissor_blur_y),
+			&_r.scissor_blur_y_shader);
 	}
 
 	if (!_r.scissor_key_shader)
@@ -352,6 +396,20 @@ void d3d9_manager::setup_shader()
 		_device_ptr->CreatePixelShader(
 			reinterpret_cast<const DWORD*>(shaders::pixel::scissor_key),
 			&_r.scissor_key_shader);
+	}
+
+	if (!_r.blur_x_pixel_shader)
+	{
+		_device_ptr->CreatePixelShader(
+			reinterpret_cast<const DWORD*>(shaders::pixel::blur_x),
+			&_r.blur_x_pixel_shader);
+	}
+
+	if (!_r.blur_y_pixel_shader)
+	{
+		_device_ptr->CreatePixelShader(
+			reinterpret_cast<const DWORD*>(shaders::pixel::blur_y),
+			&_r.blur_y_pixel_shader);
 	}
 }
 
@@ -523,11 +581,6 @@ bool d3d9_manager::create_device_objects()
 
 void d3d9_manager::invalidate_shader()
 {
-	if (_r.pixel_shader)
-	{
-		_r.pixel_shader->Release();
-		_r.pixel_shader = nullptr;
-	}
 	if (_r.vertex_shader)
 	{
 		_r.vertex_shader->Release();
@@ -537,6 +590,32 @@ void d3d9_manager::invalidate_shader()
 	{
 		_r.key_shader->Release();
 		_r.key_shader = nullptr;
+	}
+	if (_r.scissor_pixel_shader) {
+		_r.scissor_pixel_shader->Release();
+		_r.scissor_pixel_shader = nullptr;
+	}
+	if (_r.scissor_blur_x_shader) {
+		_r.scissor_blur_x_shader->Release();
+		_r.scissor_blur_x_shader = nullptr;
+	}
+	if (_r.scissor_blur_y_shader) {
+		_r.scissor_blur_y_shader->Release();
+		_r.scissor_blur_y_shader = nullptr;
+	}
+	if (_r.scissor_blur_y_shader) {
+		_r.scissor_blur_y_shader->Release();
+		_r.scissor_blur_y_shader = nullptr;
+	}
+	if (_r.scissor_key_shader)
+	{
+		_r.scissor_key_shader->Release();
+		_r.scissor_key_shader = nullptr;
+	}
+	if (_r.blur_y_pixel_shader)
+	{
+		_r.blur_y_pixel_shader->Release();
+		_r.blur_y_pixel_shader = nullptr;
 	}
 }
 
