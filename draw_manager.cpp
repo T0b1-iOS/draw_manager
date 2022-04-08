@@ -211,9 +211,9 @@ void draw_buffer::update_matrix_translate(const position& xy_translate, const si
 	}
 }
 
-void draw_buffer::set_blur(const uint8_t strength)
+void draw_buffer::set_blur(const uint8_t strength, const uint8_t passes)
 {
-	if (!cmds.empty() && cmds.back().blur_strength == strength)
+	if (!cmds.empty() && cmds.back().blur_strength == strength && cmds.back().blur_pass_count == passes)
 		return;
 
 	//Allocate new command
@@ -226,6 +226,7 @@ void draw_buffer::set_blur(const uint8_t strength)
 	new_cmd.tex_id = cur_tex_id();
 	new_cmd.font_texture = (new_cmd.tex_id == manager->fonts->tex_id && manager->fonts->tex_id != nullptr);
 	new_cmd.blur_strength = strength;
+	new_cmd.blur_pass_count = passes;
 	new_cmd.native_texture = !cmds.empty() && cmds.back().native_texture;
 	if (!cmds.empty())
 		new_cmd.key_color = cmds.back().key_color;

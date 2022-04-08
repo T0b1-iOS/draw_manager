@@ -87,6 +87,7 @@ namespace util::draw
 			bool circle_scissor = false;
 			bool native_texture = false;
 			uint8_t blur_strength = 0;
+			uint8_t blur_pass_count = 0;
 			std::uint32_t vtx_count = 0;
 			std::function<void(const draw_cmd*)> callback =
 				nullptr;
@@ -245,7 +246,7 @@ namespace util::draw
 		// Warning: This will add to the current translation
 		void update_matrix_translate(const position& xy_translate, const size_t cmd_idx = -1);
 
-		void set_blur(uint8_t strength = 2);
+		void set_blur(uint8_t strength = 2, uint8_t passes = 1);
 		void set_key_color(color col);
 
 		//Drawing Funcs

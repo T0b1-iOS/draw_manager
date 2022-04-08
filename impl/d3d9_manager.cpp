@@ -244,47 +244,63 @@ void d3d9_manager::draw()
 					_device_ptr->SetVertexShader(_r.vertex_shader);
 
 					// TODO: maybe precompute common values?
-					auto sample_count = std::min(cmd.blur_strength, uint8_t(95));
+					const auto sample_count = std::min(cmd.blur_strength, uint8_t(95 * 2));
 					const auto sigma = static_cast<float>(sample_count) / 3.f;
-					std::array<float, 128> weights;
+					std::array<float, 191> weights;
+					std::array<float, 191> offsets;
 					weights[0] = gauss(sigma, 0);
 					float sum = weights[0];
-					for (int i = 1; i <= sample_count; ++i) {
-						weights[i] = gauss(sigma, i);
-						if (weights[i] < 0.01) {
-							// cut off samples that basically don't contribute any value
-							sample_count = i;
-							break;
-						}
-						sum += weights[i] * 2.f;
+					for (int i = 1; i <= sample_count / 2; ++i) {
+						// combined computation courtesy of https://www.rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
+						const auto weight1 = gauss(sigma, i*2);
+						const auto weight2 = gauss(sigma, i*2 + 1);
+						const auto off1 = (float)i * 2;
+						const auto off2 = off1 + 1;
+						const auto combined_weight = weight1 + weight2;
+						weights[i] = combined_weight;
+						offsets[i] = ((off1 * weight1) + (off2 * weight2)) / combined_weight;
+
+						sum += combined_weight * 2.f;
 					}
+					if (sample_count & 1) {
+						weights[sample_count] = gauss(sigma, sample_count);
+						offsets[sample_count] = sample_count;
+						sum += weights[sample_count] * 2;
+					}
+
 					float sum_inv = 1.f / sum;
 					for (int i = 0; i <= sample_count; ++i) {
 						weights[i] *= sum_inv;
 					}
 
-					float sample_vec[4] = {sample_count, 0, 0, 0 };
-					const auto f_count = (sample_count + 3) / 4; // round up
+					// we effectively half the original sample count
+					const auto end_sample_count = (sample_count >> 1) + (sample_count & 1);
+					float sample_vec[4] = { end_sample_count, 0, 0, 0 };
+					const auto f_count = (end_sample_count + 3) / 4; // round up
 					_device_ptr->SetPixelShaderConstantF(13, sample_vec, 1);
 					_device_ptr->SetPixelShaderConstantF(14, weights.data(), f_count);
+					_device_ptr->SetPixelShaderConstantF(38, offsets.data(), f_count);
 
 					_device_ptr->SetSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 					_device_ptr->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 
-					// TODO: maybe cache min/max coords in the cmd so we can say somewhat accurately where we draw?
-					_device_ptr->StretchRect(back_buffer, &clip, target_surface,
-						&clip, D3DTEXF_NONE);
-					_device_ptr->SetPixelShader(cmd.circle_scissor ? _r.scissor_blur_x_shader : _r.blur_x_pixel_shader);
-					_device_ptr->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, vtx_offset, 0,
-						cmd.vtx_count, idx_offset,
-						cmd.elem_count / 3);
+					for (auto i = 0; i < cmd.blur_pass_count; ++i) 
+					{					
+						// TODO: maybe cache min/max coords in the cmd so we can say somewhat accurately where we draw?
+						_device_ptr->StretchRect(back_buffer, &clip, target_surface,
+							&clip, D3DTEXF_NONE);
+						_device_ptr->SetPixelShader(cmd.circle_scissor ? _r.scissor_blur_x_shader : _r.blur_x_pixel_shader);
+						_device_ptr->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, vtx_offset, 0,
+							cmd.vtx_count, idx_offset,
+							cmd.elem_count / 3);
 
-					_device_ptr->StretchRect(back_buffer, &clip, target_surface,
-						&clip, D3DTEXF_NONE);
-					_device_ptr->SetPixelShader(cmd.circle_scissor ? _r.scissor_blur_y_shader : _r.blur_y_pixel_shader);
-					_device_ptr->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, vtx_offset, 0,
-						cmd.vtx_count, idx_offset,
-						cmd.elem_count / 3);
+						_device_ptr->StretchRect(back_buffer, &clip, target_surface,
+							&clip, D3DTEXF_NONE);
+						_device_ptr->SetPixelShader(cmd.circle_scissor ? _r.scissor_blur_y_shader : _r.blur_y_pixel_shader);
+						_device_ptr->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, vtx_offset, 0,
+							cmd.vtx_count, idx_offset,
+							cmd.elem_count / 3);
+					}
 
 					_device_ptr->SetSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 					_device_ptr->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
