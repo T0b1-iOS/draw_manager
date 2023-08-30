@@ -5,7 +5,7 @@
 
 #include <assert.h>
 
-#include "tex_dict.h"
+#include "tex_dict_dx9.hpp"
 
 using namespace util::draw;
 
@@ -88,7 +88,7 @@ bool d3d9_tex_wrapper::copy_texture_data(IDirect3DDevice9* device)
 	return (res == D3D_OK);
 }
 
-void d3d9_tex_dict::clear_textures()
+void tex_dict_dx9::clear_textures()
 {
 	std::scoped_lock g(_mutex);
 	for (auto& tex : _textures)
@@ -97,7 +97,7 @@ void d3d9_tex_dict::clear_textures()
 	_textures.clear();
 }
 
-d3d9_tex_wrapper* d3d9_tex_dict::create_texture(uint32_t size_x, uint32_t size_y)
+d3d9_tex_wrapper* tex_dict_dx9::create_texture(uint32_t size_x, uint32_t size_y)
 {
 	std::scoped_lock g(_mutex);
 
@@ -107,7 +107,7 @@ d3d9_tex_wrapper* d3d9_tex_dict::create_texture(uint32_t size_x, uint32_t size_y
 	return ptr;
 }
 
-void d3d9_tex_dict::destroy_texture(d3d9_tex_wrapper* tex)
+void tex_dict_dx9::destroy_texture(d3d9_tex_wrapper* tex)
 {
 	std::scoped_lock g(_mutex);
 	if (!is_valid_tex(tex))

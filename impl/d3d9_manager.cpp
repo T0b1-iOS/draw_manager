@@ -13,7 +13,7 @@ using namespace util::draw;
 
 constexpr auto D3DFVF_CUSTOM = (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1);
 
-d3d9_tex_dict d3d9_manager::_tex_dict{};
+tex_dict_dx9 d3d9_manager::_tex_dict{};
 d3d_shared_reset_data d3d9_manager::_r{};
 
 struct d3d9_vertex
@@ -679,7 +679,7 @@ tex_id d3d9_manager::create_texture(const uint32_t width, const uint32_t height)
 }
 
 // Idk why directx seems to be using RABG internally, mabye not, IDK!!! this is weird, fuck directx
-void copy_convert(const uint8_t* rgba, uint8_t* out, const size_t size)
+static void copy_convert(const uint8_t* rgba, uint8_t* out, const size_t size)
 {
 	auto in = reinterpret_cast<const uint32_t*>(rgba);
 	auto buf = reinterpret_cast<uint32_t*>(out);

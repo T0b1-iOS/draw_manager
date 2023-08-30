@@ -5,7 +5,7 @@
 #include <d3d9.h>
 #include <d3dx9.h>
 
-#include "tex_dict.h"
+#include "tex_dict_dx9.hpp"
 
 namespace util::draw
 {
@@ -63,7 +63,7 @@ namespace util::draw
 
 	protected:
 		IDirect3DDevice9* _device_ptr = nullptr;
-		static d3d9_tex_dict _tex_dict;
+		static tex_dict_dx9 _tex_dict;
 		static d3d_shared_reset_data _r;
 		IDirect3DVertexBuffer9* _vtx_buffer = nullptr;
 		IDirect3DIndexBuffer9* _idx_buffer = nullptr;

@@ -288,6 +288,11 @@ namespace math
 			return (_a << 24) | (_r << 16) | (_g << 8) | _b;
 		}
 
+		uint32_t as_abgr() const
+		{
+			return (_a << 24) | (_b << 16) | (_g << 8) | _r;
+		}
+
 		operator uint32_t() const
 		{
 			return (_r << 24) | (_g << 16) | (_b << 8) | _a;

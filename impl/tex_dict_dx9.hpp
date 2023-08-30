@@ -5,8 +5,7 @@
 #include <vector>
 #include <mutex>
 
-namespace util::draw
-{
+namespace util::draw {
 	struct d3d9_tex_wrapper
 	{
 		d3d9_tex_wrapper() noexcept = default;
@@ -63,16 +62,10 @@ namespace util::draw
 		uint32_t _size_x = 0u, _size_y = 0u;
 	};
 
-	struct d3d9_tex_dict
-	{
-		d3d9_tex_dict() = default;
-		~d3d9_tex_dict() { clear_textures(); }
+	struct tex_dict_dx9 {
 
-		d3d9_tex_wrapper* create_texture(uint32_t size_x, uint32_t size_y);
-		void destroy_texture(d3d9_tex_wrapper* tex);
-
-		// call from directx thread
-		void clear_textures();
+		tex_dict_dx9() = default;
+		~tex_dict_dx9() { clear_textures(); }
 
 		IDirect3DTexture9* texture(const d3d9_tex_wrapper* tex)
 		{
@@ -103,6 +96,17 @@ namespace util::draw
 			return tex->texture_size(width, height);
 		}
 
+		bool is_valid_tex(const d3d9_tex_wrapper* tex)
+		{
+			return std::find(_valid_elements.begin(), _valid_elements.end(), tex) != _valid_elements.end();
+		}
+
+		d3d9_tex_wrapper* create_texture(uint32_t size_x, uint32_t size_y);
+		void destroy_texture(d3d9_tex_wrapper* tex);
+
+		// call from directx thread
+		void clear_textures();
+
 		void pre_reset()
 		{
 			std::scoped_lock g(_mutex);
@@ -118,14 +122,9 @@ namespace util::draw
 					tex.create(device);
 		}
 
-		bool is_valid_tex(const d3d9_tex_wrapper* tex)
-		{
-			return std::find(_valid_elements.begin(), _valid_elements.end(), tex) != _valid_elements.end();
-		}
-
 	protected:
 		std::mutex _mutex;
 		std::forward_list<d3d9_tex_wrapper> _textures = {};
 		std::vector<d3d9_tex_wrapper*> _valid_elements = {};
 	};
-}  // namespace util::draw
+}
