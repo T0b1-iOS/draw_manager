@@ -54,10 +54,13 @@ int main()
 	if (!create_draw_context())
 		return 1;
 
+	RECT rect;
+	GetClientRect(window_handle, &rect);
+
 	draw_manager = std::make_unique<util::draw::d3d11_manager>(d3d11_device.Get(), d3d11_device_ctx.Get());
 	draw_manager->update_screen_size(util::draw::position{
-		static_cast<float>(window_size_x),
-			static_cast<float>(window_size_y)
+		static_cast<float>(rect.right - rect.left),
+			static_cast<float>(rect.bottom - rect.top)
 	});
 	user_thread = std::thread{ user_thread_impl };
 
