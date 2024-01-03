@@ -207,6 +207,7 @@ void d3d11_manager::draw() {
 		desc.ArraySize = 1;
 		desc.Format = rt_desc.Format;
 		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		
