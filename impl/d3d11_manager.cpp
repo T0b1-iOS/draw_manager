@@ -442,6 +442,7 @@ bool d3d11_manager::create_font_texture() {
 		desc.ArraySize = 1;
 		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		desc.SampleDesc.Count = 1;
+		//desc.SampleDesc.Quality = 0;
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
@@ -735,8 +736,8 @@ void d3d11_manager::update_screen_size(const position& screen_size)
 	_wvp[0] = 2.f / _screen_size.x;
 	_wvp[5] = 2.f / -_screen_size.y;
 	_wvp[10] = 0.5f;
-	_wvp[12] = (_screen_size.x) / -_screen_size.x;
-	_wvp[13] = (_screen_size.y) / _screen_size.y;
+	_wvp[12] = -1.f;
+	_wvp[13] = 1.f;
 	_wvp[14] = 0.5f;
 	_wvp[15] = 1.f;
 }
